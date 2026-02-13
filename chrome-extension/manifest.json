@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "ヤフオク出品アシスト",
+  "version": "1.0.0",
+  "description": "商品管理アプリの未出品リストを取得し、ヤフオク出品フォームに自動入力します",
+  "permissions": [
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://auctions.yahoo.co.jp/*",
+    "http://localhost:3000/*",
+    "https://*.vercel.app/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ヤフオク出品アシスト"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://auctions.yahoo.co.jp/sell/jp/show/submit*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
