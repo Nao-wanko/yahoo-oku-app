@@ -37,7 +37,9 @@ type SortOrder = "asc" | "desc";
 
 type ProductTableProps = {
   products: Product[];
-  onUpdate: (id: string, updates: Partial<Product>) => void;
+  onUpdate: (id: string, updates: Partial<Product>) => void | Promise<void>;
+  onUploadImage?: (productId: string, file: File) => Promise<string>;
+  onRemoveImage?: (imageUrl: string) => Promise<void>;
 };
 
 const STATUS_LABEL: Record<ListingStatus, string> = {
@@ -45,7 +47,12 @@ const STATUS_LABEL: Record<ListingStatus, string> = {
   listed: "出品済み",
 };
 
-export function ProductTable({ products, onUpdate }: ProductTableProps) {
+export function ProductTable({
+  products,
+  onUpdate,
+  onUploadImage,
+  onRemoveImage,
+}: ProductTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
@@ -293,6 +300,12 @@ export function ProductTable({ products, onUpdate }: ProductTableProps) {
                                 updatedAt: new Date().toISOString(),
                               })
                             }
+                            onUploadImage={
+                              onUploadImage
+                                ? (file) => onUploadImage(product.id, file)
+                                : undefined
+                            }
+                            onRemoveImage={onRemoveImage}
                           />
                         </div>
                       </TableCell>

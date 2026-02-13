@@ -1,24 +1,21 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useProducts } from "@/lib/products-store";
 import { CsvUpload } from "@/components/csv-upload";
 import { ProductTable } from "@/components/product-table";
-import type { Product } from "@/types/product";
-import { initialProducts } from "@/lib/products-store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-
-  const handleCsvParsed = useCallback((parsed: Product[]) => {
-    setProducts(parsed);
-  }, []);
-
-  const handleUpdateProduct = useCallback((id: string, updates: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
-    );
-  }, []);
+  const {
+    products,
+    loading,
+    error,
+    updateProduct,
+    addProductsFromCsv,
+    uploadProductImage,
+    deleteProductImage,
+  } = useProducts();
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -28,7 +25,7 @@ export default function DashboardPage() {
             ヤフオク出品管理
           </h1>
           <p className="text-sm text-muted-foreground">
-            CSVで商品を読み込み、一覧で編集・画像を管理できます
+            CSVで商品を読み込み、一覧で編集・画像を管理できます（Supabase に保存）
           </p>
         </div>
       </header>
@@ -38,7 +35,7 @@ export default function DashboardPage() {
           <h2 className="mb-3 text-sm font-medium text-muted-foreground">
             CSVアップロード
           </h2>
-          <CsvUpload onParsed={handleCsvParsed} />
+          <CsvUpload onParsed={addProductsFromCsv} />
         </section>
 
         <section>
@@ -50,10 +47,23 @@ export default function DashboardPage() {
               </p>
             </CardHeader>
             <CardContent>
-              <ProductTable
-                products={products}
-                onUpdate={handleUpdateProduct}
-              />
+              {error && (
+                <p className="mb-4 rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                  {error}
+                </p>
+              )}
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="size-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <ProductTable
+                  products={products}
+                  onUpdate={updateProduct}
+                  onUploadImage={uploadProductImage}
+                  onRemoveImage={deleteProductImage}
+                />
+              )}
             </CardContent>
           </Card>
         </section>
