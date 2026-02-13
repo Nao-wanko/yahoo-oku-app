@@ -3,8 +3,8 @@
  * API から未出品商品を取得し、クリックでヤフオクタブに送信・画像URLはコピー用表示
  */
 
-// 本番では Vercel URL 等に差し替え可能
-const API_BASE = "https://yahoo-oku-5hgbwetxp-naosakais-projects.vercel.app/";
+// 本番: Vercel URL / 開発: http://localhost:3000（末尾スラッシュなし）
+const API_BASE = "https://yahoo-oku-5hgbwetxp-naosakais-projects.vercel.app".replace(/\/$/, "");
 
 const btnRefresh = document.getElementById("btnRefresh");
 const productList = document.getElementById("productList");
@@ -98,14 +98,13 @@ function renderProductItem(product, index) {
         return;
       }
       if (!tab.url || !tab.url.startsWith("https://auctions.yahoo.co.jp/")) {
-        showMessage("ヤフオクの出品ページを開いてから、もう一度商品をクリックしてください。", "error");
+        showMessage("ヤフオクの出品ページを開いた状態で、商品をクリックしてください。", "error");
         return;
       }
-      chrome.tabs.sendMessage(tab.id, { type: "FILL_FORM", product });
-      showMessage("フォームに入力しました", "success");
+      await sendProductToTab(tab.id, product);
     } catch (err) {
       console.error(err);
-      showMessage("フォームの入力に失敗しました。出品ページを再読み込みしてからお試しください。", "error");
+      showMessage("エラー: " + (err.message || "フォームの入力に失敗しました"), "error");
     }
   });
 
@@ -122,14 +121,76 @@ function copyToClipboard(text) {
   return navigator.clipboard.writeText(text);
 }
 
+/**
+ * ヤフオクタブに商品データを送信。コンテンツスクリプトが未注入の場合は注入してから再送する
+ */
+function sendProductToTab(tabId, product) {
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, { type: "FILL_FORM", product }, (response) => {
+      if (chrome.runtime.lastError) {
+        const msg = chrome.runtime.lastError.message || "";
+        if (msg.includes("Receiving end does not exist") || msg.includes("Could not establish connection")) {
+          injectContentAndSend(tabId, product, resolve);
+        } else {
+          showMessage("送信エラー: " + msg, "error");
+          resolve();
+        }
+        return;
+      }
+      showMessage("フォームに入力しました", "success");
+      resolve();
+    });
+  });
+}
+
+function injectContentAndSend(tabId, product, resolve) {
+  chrome.scripting.executeScript(
+    { target: { tabId }, files: ["content.js"] },
+    (results) => {
+      if (chrome.runtime.lastError) {
+        showMessage(
+          "出品ページでスクリプトを読み込めませんでした。出品ページを一度再読み込み（F5）してから、もう一度商品をクリックしてください。",
+          "error"
+        );
+        resolve();
+        return;
+      }
+      setTimeout(() => {
+        chrome.tabs.sendMessage(tabId, { type: "FILL_FORM", product }, () => {
+          if (chrome.runtime.lastError) {
+            showMessage("フォームの入力に失敗しました。ページを再読み込みしてからお試しください。", "error");
+          } else {
+            showMessage("フォームに入力しました", "success");
+          }
+          resolve();
+        });
+      }, 150);
+    }
+  );
+}
+
 async function fetchProducts() {
   const url = `${API_BASE}/api/products`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(res.status === 503 ? "APIが利用できません。管理アプリが起動しているか確認してください。" : `HTTP ${res.status}`);
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (e) {
+    throw new Error(
+      "APIに接続できません。\n・" + (API_BASE.startsWith("http://localhost") ? "管理アプリ（npm run dev）が起動しているか確認してください。" : "ネットワークとAPIのURLを確認してください。")
+    );
   }
-  const data = await res.json();
-  if (!Array.isArray(data)) throw new Error("不正なレスポンスです");
+  const text = await res.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    throw new Error("APIの応答がJSONではありません。");
+  }
+  if (!res.ok) {
+    const msg = data?.error || (res.status === 503 ? "APIが利用できません（Supabase未設定の可能性）。" : `HTTP ${res.status}`);
+    throw new Error(msg);
+  }
+  if (!Array.isArray(data)) throw new Error("不正なレスポンスです。");
   return data;
 }
 
@@ -142,7 +203,9 @@ async function refreshList() {
     products.forEach((p, i) => productList.appendChild(renderProductItem(p, i)));
     showMessage(products.length > 0 ? `${products.length}件の未出品商品を取得しました` : "未出品の商品はありません");
   } catch (e) {
-    showMessage(e.message || "商品リストの取得に失敗しました", "error");
+    const msg = e.message || "商品リストの取得に失敗しました";
+    showMessage(msg, "error");
+    console.error("fetchProducts error:", e);
   } finally {
     btnRefresh.disabled = false;
   }
