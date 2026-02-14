@@ -223,18 +223,59 @@ export function ProductTable({
                       />
                     </TableCell>
                     <TableCell>
-                      <Input
-                        value={product.condition}
-                        onChange={(e) =>
+                      <Select
+                        value={
+                          [
+                            "未使用",
+                            "未使用に近い",
+                            "目立った傷や汚れなし",
+                            "やや傷や汚れあり",
+                            "傷や汚れあり",
+                            "全体的に状態が悪い",
+                          ].includes(product.condition)
+                            ? product.condition
+                            : product.condition || "__none__"
+                        }
+                        onValueChange={(v) =>
                           handleFieldChange(
                             product.id,
                             "condition",
-                            e.target.value
+                            v === "__none__" ? "" : v
                           )
                         }
-                        placeholder="状態"
-                        className="h-8 border-0 bg-transparent shadow-none focus-visible:ring-1"
-                      />
+                      >
+                        <SelectTrigger className="h-8 min-w-[160px] border-0 bg-transparent shadow-none focus:ring-1">
+                          <SelectValue placeholder="商品の状態" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">選択してください</SelectItem>
+                          <SelectItem value="未使用">未使用</SelectItem>
+                          <SelectItem value="未使用に近い">未使用に近い</SelectItem>
+                          <SelectItem value="目立った傷や汚れなし">
+                            目立った傷や汚れなし
+                          </SelectItem>
+                          <SelectItem value="やや傷や汚れあり">
+                            やや傷や汚れあり
+                          </SelectItem>
+                          <SelectItem value="傷や汚れあり">傷や汚れあり</SelectItem>
+                          <SelectItem value="全体的に状態が悪い">
+                            全体的に状態が悪い
+                          </SelectItem>
+                          {product.condition &&
+                            ![
+                              "未使用",
+                              "未使用に近い",
+                              "目立った傷や汚れなし",
+                              "やや傷や汚れあり",
+                              "傷や汚れあり",
+                              "全体的に状態が悪い",
+                            ].includes(product.condition) && (
+                              <SelectItem value={product.condition}>
+                                {product.condition}（CSVより）
+                              </SelectItem>
+                            )}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="min-w-[200px]">
                       <Textarea

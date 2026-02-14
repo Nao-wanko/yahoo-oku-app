@@ -52,4 +52,4 @@ Vercel がデプロイしている **ブランチ** のリポジトリに、次�
 npm run build
 ```
 
-成功し、`src/app/api/products/route.ts` を削除するとビルド結果が変わることを確認できれば、コードと Next の設定は問題ありません。あとは Vercel の「Root Directory」とデプロイブランチの一致を確認してください。
+成功し、`pages/api/products.ts` を削除するとビルド結果が変わることを確認できれば、コードと Next の設定は問題ありません。あとは Vercel の「Root Directory」とデプロイブランチの一致を確認してください。

@@ -104,7 +104,7 @@ export function CsvUpload({ onParsed }: CsvUploadProps) {
           </div>
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
             <FileSpreadsheet className="size-4" />
-            商品名・価格・商品の状態・説明・ステータス を含むCSVに対応
+            商品名・価格・商品の状態・説明・ステータス を含むCSVに対応（商品の状態はヤフオクの選択肢推奨：未使用、目立った傷や汚れなし など）
           </p>
         </label>
         {error && (

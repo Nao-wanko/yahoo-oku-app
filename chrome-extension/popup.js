@@ -4,7 +4,7 @@
  */
 
 // 本番: Vercel URL / 開発: http://localhost:3000（末尾スラッシュなし）
-const API_BASE = "https://yahoo-oku-5hgbwetxp-naosakais-projects.vercel.app".replace(/\/$/, "");
+const API_BASE = "https://yahoo-oku-app.vercel.app".replace(/\/$/, "");
 
 const btnRefresh = document.getElementById("btnRefresh");
 const productList = document.getElementById("productList");
@@ -12,13 +12,18 @@ const messageEl = document.getElementById("message");
 
 let products = [];
 
-function showMessage(text, type = "info") {
+function showMessage(text, type = "info", noAutoHide = false) {
   messageEl.textContent = text;
   messageEl.className = "msg " + type;
   messageEl.style.display = "block";
-  if (type !== "error" && type !== "success") {
-    setTimeout(() => {
+  if (messageEl._hideTimer) {
+    clearTimeout(messageEl._hideTimer);
+    messageEl._hideTimer = null;
+  }
+  if (!noAutoHide && type !== "error" && type !== "success") {
+    messageEl._hideTimer = setTimeout(() => {
       messageEl.style.display = "none";
+      messageEl._hideTimer = null;
     }, 3000);
   }
 }
@@ -235,6 +240,48 @@ async function refreshList() {
 }
 
 btnRefresh.addEventListener("click", refreshList);
+
+// フォーム診断
+document.getElementById("btnDiagnose").addEventListener("click", async () => {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id || !tab.url?.startsWith("https://auctions.yahoo.co.jp/")) {
+      showMessage("ヤフオクの出品ページを開いた状態で「フォーム診断」をクリックしてください。", "error");
+      return;
+    }
+    chrome.tabs.sendMessage(tab.id, { type: "SCAN_FORM" }, (response) => {
+      if (chrome.runtime.lastError) {
+        const msg = chrome.runtime.lastError.message || "";
+        if (msg.includes("Receiving end does not exist") || msg.includes("Could not establish connection")) {
+          chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["content.js"] }, () => {
+            setTimeout(() => {
+              chrome.tabs.sendMessage(tab.id, { type: "SCAN_FORM" }, (resp) => {
+                showDiagnoseResult(resp, tab.id);
+              });
+            }, 200);
+          });
+        } else {
+          showMessage("診断エラー: " + msg, "error");
+        }
+        return;
+      }
+      showDiagnoseResult(response, tab.id);
+    });
+  } catch (e) {
+    showMessage("診断エラー: " + (e.message || "不明"), "error");
+  }
+});
+
+function showDiagnoseResult(response, tabId) {
+  if (!response?.ok || !response.elements) {
+    showMessage("診断できませんでした。出品ページを再読み込みしてからお試しください。", "error");
+    return;
+  }
+  const els = response.elements;
+  const lines = els.map((e) => `name="${e.name}" id="${e.id}" type=${e.type} ${e.placeholder ? `placeholder="${e.placeholder.slice(0,20)}"` : ""}`).join("\n");
+  const text = `【フォーム要素 ${els.length} 件】\n\n${lines}\n\n※この情報を共有すれば、セレクターを修正できます`;
+  showMessage(text, "info", true);
+}
 
 // 開いたときに一度取得
 refreshList();

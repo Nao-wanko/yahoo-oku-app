@@ -23,6 +23,16 @@ export interface Product {
   updatedAt: string;
 }
 
+/** ヤフオク商品の状態（istatus）の選択肢 */
+export const YAHOO_CONDITION_OPTIONS = [
+  "未使用",
+  "未使用に近い",
+  "目立った傷や汚れなし",
+  "やや傷や汚れあり",
+  "傷や汚れあり",
+  "全体的に状態が悪い",
+] as const;
+
 /** CSV 1行からマッピングするときのキー候補（ヘッダー名のゆらぎに対応） */
 export const CSV_FIELD_MAP: Record<string, keyof Omit<Product, "id" | "images" | "updatedAt">> = {
   "商品名": "name",
