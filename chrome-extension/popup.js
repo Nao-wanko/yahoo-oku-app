@@ -170,7 +170,8 @@ function injectContentAndSend(tabId, product, resolve) {
 }
 
 async function fetchProducts() {
-  const url = `${API_BASE}/api/products`;
+  const base = API_BASE.replace(/\/$/, "");
+  let url = `${base}/api/products`;
   let res;
   try {
     res = await fetch(url);
@@ -179,12 +180,34 @@ async function fetchProducts() {
       "APIに接続できません。\n・" + (API_BASE.startsWith("http://localhost") ? "管理アプリ（npm run dev）が起動しているか確認してください。" : "ネットワークとAPIのURLを確認してください。")
     );
   }
-  const text = await res.text();
+  let text = await res.text();
+  let contentType = (res.headers.get("content-type") || "").toLowerCase();
+  if (contentType.includes("text/html") && !url.endsWith("/")) {
+    const urlWithSlash = url + "/";
+    const res2 = await fetch(urlWithSlash);
+    const text2 = await res2.text();
+    const ct2 = (res2.headers.get("content-type") || "").toLowerCase();
+    if (!ct2.includes("text/html")) {
+      res = res2;
+      text = text2;
+      contentType = ct2;
+      url = urlWithSlash;
+    }
+  }
+  if (contentType.includes("text/html")) {
+    throw new Error(
+      "APIがHTMLを返しています（404の可能性）。\n\n確認してください:\n・Vercelのデプロイが成功しているか\n・プロジェクトのルートで「Root Directory」が空または正しいか\n・ブラウザで開いてJSONが見えるか: " + url
+    );
+  }
   let data;
   try {
-    data = text ? JSON.parse(text) : null;
+    const trimmed = (text || "").trim();
+    data = trimmed ? JSON.parse(trimmed) : null;
   } catch {
-    throw new Error("APIの応答がJSONではありません。");
+    const preview = (text || "").trim().slice(0, 80).replace(/\s+/g, " ");
+    throw new Error(
+      "APIの応答がJSONではありません。\nURLを確認してください: " + url + (preview ? "\n応答の先頭: " + preview + "…" : "")
+    );
   }
   if (!res.ok) {
     const msg = data?.error || (res.status === 503 ? "APIが利用できません（Supabase未設定の可能性）。" : `HTTP ${res.status}`);

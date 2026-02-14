@@ -19,11 +19,18 @@
 
 ## API URL の変更（Vercel デプロイ時）
 
-`popup.js` の先頭で `API_BASE` を変更してください。
+`popup.js` の先頭で `API_BASE` を変更してください（末尾スラッシュなし）。
 
 ```js
 const API_BASE = "https://your-app.vercel.app";
 ```
+
+## Vercel で「APIがHTMLを返しています」と出る場合
+
+1. **ブラウザで直接開く**: `https://あなたのドメイン.vercel.app/api/products` を開き、`[{...}]` のようなJSONが表示されるか確認する。
+2. **Root Directory**: Vercel の Project Settings → General → Root Directory が **空** または Next.js アプリのルート（`src/app/api` があるディレクトリの親）になっているか確認する。リポジトリのルートがアプリなら空のままでよい。
+3. **デプロイ**: 最新のデプロイが成功しているか確認する。ビルドログで `src/app/api/products/route.ts` が含まれているか見る。
+4. **環境変数**: Settings → Environment Variables に `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` を設定し、再デプロイする。
 
 ## ファイル構成
 
