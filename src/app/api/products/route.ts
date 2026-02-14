@@ -43,6 +43,8 @@ function rowToProduct(row: {
   };
 }
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET: 未出品の商品リストを返す（Chrome 拡張機能用）
  * Supabase products テーブルで status = 'not_listed' のものを取得
