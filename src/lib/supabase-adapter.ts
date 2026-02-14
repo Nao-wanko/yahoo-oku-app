@@ -109,6 +109,7 @@ export async function updateProduct(
  */
 export async function addProduct(product: Product): Promise<void> {
   if (!supabase || !isSupabaseConfigured()) return;
+  // 新カラム（closing_ymd等）はマイグレーション未実行だと失敗するため、insertでは含めない
   const row: ProductRow = {
     id: product.id,
     name: product.name,
@@ -119,11 +120,6 @@ export async function addProduct(product: Product): Promise<void> {
     status: product.status,
     images: product.images ?? [],
     updated_at: product.updatedAt ?? new Date().toISOString(),
-    closing_ymd: product.closingYMD ?? null,
-    closing_time: product.closingTime ?? null,
-    shipping: product.shipping ?? null,
-    shipschedule: product.shipschedule ?? null,
-    loc_cd: product.locCd ?? null,
   };
   const { error } = await supabase.from(PRODUCTS_TABLE).insert(row);
   if (error) {
@@ -137,6 +133,7 @@ export async function addProduct(product: Product): Promise<void> {
  */
 export async function addProducts(products: Product[]): Promise<void> {
   if (!supabase || !isSupabaseConfigured() || products.length === 0) return;
+  // 新カラム（closing_ymd等）はマイグレーション未実行だと失敗するため、insertでは含めない
   const rows: ProductRow[] = products.map((p) => ({
     id: p.id,
     name: p.name,
@@ -147,11 +144,6 @@ export async function addProducts(products: Product[]): Promise<void> {
     status: p.status,
     images: p.images ?? [],
     updated_at: p.updatedAt ?? new Date().toISOString(),
-    closing_ymd: p.closingYMD ?? null,
-    closing_time: p.closingTime ?? null,
-    shipping: p.shipping ?? null,
-    shipschedule: p.shipschedule ?? null,
-    loc_cd: p.locCd ?? null,
   }));
   const { error } = await supabase.from(PRODUCTS_TABLE).insert(rows);
   if (error) {

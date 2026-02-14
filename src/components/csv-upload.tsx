@@ -31,9 +31,15 @@ export function CsvUpload({ onParsed }: CsvUploadProps) {
             setError(results.errors[0].message ?? "CSVの解析に失敗しました。");
             return;
           }
-          const rows = results.data as unknown as Record<string, string>[];
-          const products: Product[] = rows.map((row) => createProductFromCsvRow(row));
-          onParsed(products);
+          try {
+            const rows = results.data as unknown as Record<string, string>[];
+            const products: Product[] = rows.map((row) => createProductFromCsvRow(row));
+            onParsed(products);
+          } catch (err) {
+            setError(
+              err instanceof Error ? err.message : "CSVの取り込みに失敗しました。"
+            );
+          }
         },
       });
     },

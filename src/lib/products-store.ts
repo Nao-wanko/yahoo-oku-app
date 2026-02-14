@@ -74,14 +74,24 @@ export function useProducts(): UseProductsReturn {
     []
   );
 
-  const addProductsFromCsv = useCallback(async (newProducts: Product[]) => {
-    if (isSupabaseConfigured() && newProducts.length > 0) {
-      await addProductsApi(newProducts);
-      await load();
-    } else {
-      setProducts(newProducts);
-    }
-  }, [load]);
+  const addProductsFromCsv = useCallback(
+    async (newProducts: Product[]) => {
+      setError(null);
+      try {
+        if (isSupabaseConfigured() && newProducts.length > 0) {
+          await addProductsApi(newProducts);
+          await load();
+        } else {
+          setProducts(newProducts);
+        }
+      } catch (e) {
+        const message =
+          e instanceof Error ? e.message : "CSVの取り込みに失敗しました。";
+        setError(message);
+      }
+    },
+    [load]
+  );
 
   const uploadProductImage = useCallback(
     async (productId: string, file: File): Promise<string> => {
