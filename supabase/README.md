@@ -20,12 +20,10 @@ Vercel の **Project > Settings > Environment Variables** で次を追加:
 
 ## 3. Database: 商品テーブル
 
-**SQL Editor** で以下を順に実行する。
+**SQL Editor** で実行する。
 
-1. `migrations/20250214000000_create_products_and_storage.sql` の  
-   `create table` から `products_updated_at` トリガーまで
-2. `migrations/20250214000001_add_salesmode.sql`（販売形式カラム追加）
-3. `migrations/20250214000002_add_listing_fields.sql`（終了日時・送料・発送日数・発送元）
+- **すでに products テーブルがある場合**: `RUN_IN_SQL_EDITOR.sql` をコピーしてそのまま実行
+- **ゼロから作る場合**: `migrations/20250214000000_create_products_and_storage.sql` の create table からトリガーまで実行後、`RUN_IN_SQL_EDITOR.sql` を実行
 
 （RLS ポリシーで「Allow all」にしているため、本番では認証を有効にしてポリシーを絞ることを推奨します。）
 

@@ -201,18 +201,37 @@ function fillForm(product) {
     report.filled.push("送料負担");
   }
 
-  // 9. 支払いから発送までの日数: select[name="shipschedule"]
-  const scheduleVal = product.shipschedule || "1";
-  const shipscheduleSelect = document.querySelector("select[name='shipschedule']");
-  if (shipscheduleSelect && setSelectValue(shipscheduleSelect, scheduleVal)) {
-    report.filled.push("発送までの日数");
+  // 9. 発送元の地域: select[name="loc_cd"]
+  const locVal = product.locCd || "27";
+  const locSelect = document.querySelector("select[name='loc_cd']");
+  if (locSelect) {
+    locSelect.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (setSelectValue(locSelect, locVal)) {
+      report.filled.push("発送元の地域");
+    }
   }
 
-  // 10. 発送元の地域: select[name="loc_cd"]
-  if (product.locCd) {
-    const locSelect = document.querySelector("select[name='loc_cd']");
-    if (locSelect && setSelectValue(locSelect, product.locCd)) {
-      report.filled.push("発送元の地域");
+  // 10. 配送方法: input[name="shipmethod_dummy"][data-delivertype="..."]
+  const shipMethodVal = product.shipMethod || "is_jp_yupacket_official_ship";
+  const shipRadio = document.querySelector(
+    `input[name="shipmethod_dummy"][data-delivertype="${shipMethodVal}"]`
+  );
+  if (shipRadio) {
+    shipRadio.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (!shipRadio.checked) {
+      shipRadio.click();
+      shipRadio.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    report.filled.push("配送方法");
+  }
+
+  // 11. 支払いから発送までの日数: select[name="shipschedule"]
+  const scheduleVal = product.shipschedule || "1";
+  const shipscheduleSelect = document.querySelector("select[name='shipschedule']");
+  if (shipscheduleSelect) {
+    shipscheduleSelect.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (setSelectValue(shipscheduleSelect, scheduleVal)) {
+      report.filled.push("発送までの日数");
     }
   }
 

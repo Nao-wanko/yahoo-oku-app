@@ -354,7 +354,7 @@ export function ProductTable({
                             <p className="mb-3 text-sm font-medium text-muted-foreground">
                               出品詳細（オークション用）
                             </p>
-                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                               <div>
                                 <label className="mb-1 block text-xs text-muted-foreground">終了日 (YYYY-MM-DD)</label>
                                 <Input
@@ -424,7 +424,7 @@ export function ProductTable({
                               <div>
                                 <label className="mb-1 block text-xs text-muted-foreground">発送元の地域</label>
                                 <Select
-                                  value={product.locCd ?? ""}
+                                  value={product.locCd ?? "27"}
                                   onValueChange={(v) =>
                                     handleFieldChange(product.id, "locCd", v || undefined)
                                   }
@@ -433,15 +433,77 @@ export function ProductTable({
                                     <SelectValue placeholder="選択" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="">選択しない</SelectItem>
                                     <SelectItem value="1">北海道</SelectItem>
+                                    <SelectItem value="2">青森県</SelectItem>
+                                    <SelectItem value="3">岩手県</SelectItem>
+                                    <SelectItem value="4">宮城県</SelectItem>
+                                    <SelectItem value="5">秋田県</SelectItem>
+                                    <SelectItem value="6">山形県</SelectItem>
+                                    <SelectItem value="7">福島県</SelectItem>
+                                    <SelectItem value="8">茨城県</SelectItem>
+                                    <SelectItem value="9">栃木県</SelectItem>
+                                    <SelectItem value="10">群馬県</SelectItem>
+                                    <SelectItem value="11">埼玉県</SelectItem>
+                                    <SelectItem value="12">千葉県</SelectItem>
                                     <SelectItem value="13">東京都</SelectItem>
-                                    <SelectItem value="27">大阪府</SelectItem>
                                     <SelectItem value="14">神奈川県</SelectItem>
+                                    <SelectItem value="15">山梨県</SelectItem>
+                                    <SelectItem value="16">長野県</SelectItem>
+                                    <SelectItem value="17">新潟県</SelectItem>
+                                    <SelectItem value="18">富山県</SelectItem>
+                                    <SelectItem value="19">石川県</SelectItem>
+                                    <SelectItem value="20">福井県</SelectItem>
+                                    <SelectItem value="21">岐阜県</SelectItem>
+                                    <SelectItem value="22">静岡県</SelectItem>
                                     <SelectItem value="23">愛知県</SelectItem>
+                                    <SelectItem value="24">三重県</SelectItem>
+                                    <SelectItem value="25">滋賀県</SelectItem>
+                                    <SelectItem value="26">京都府</SelectItem>
+                                    <SelectItem value="27">大阪府</SelectItem>
                                     <SelectItem value="28">兵庫県</SelectItem>
+                                    <SelectItem value="29">奈良県</SelectItem>
+                                    <SelectItem value="30">和歌山県</SelectItem>
+                                    <SelectItem value="31">鳥取県</SelectItem>
+                                    <SelectItem value="32">島根県</SelectItem>
+                                    <SelectItem value="33">岡山県</SelectItem>
+                                    <SelectItem value="34">広島県</SelectItem>
+                                    <SelectItem value="35">山口県</SelectItem>
+                                    <SelectItem value="36">徳島県</SelectItem>
+                                    <SelectItem value="37">香川県</SelectItem>
+                                    <SelectItem value="38">愛媛県</SelectItem>
+                                    <SelectItem value="39">高知県</SelectItem>
+                                    <SelectItem value="40">福岡県</SelectItem>
+                                    <SelectItem value="41">佐賀県</SelectItem>
+                                    <SelectItem value="42">長崎県</SelectItem>
+                                    <SelectItem value="43">熊本県</SelectItem>
+                                    <SelectItem value="44">大分県</SelectItem>
+                                    <SelectItem value="45">宮崎県</SelectItem>
+                                    <SelectItem value="46">鹿児島県</SelectItem>
                                     <SelectItem value="47">沖縄県</SelectItem>
                                     <SelectItem value="48">海外</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-xs text-muted-foreground">配送方法</label>
+                                <Select
+                                  value={product.shipMethod ?? "is_jp_yupacket_official_ship"}
+                                  onValueChange={(v) =>
+                                    handleFieldChange(product.id, "shipMethod", v || undefined)
+                                  }
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue placeholder="選択" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="is_yahuneko_nekoposu_ship">ネコポス</SelectItem>
+                                    <SelectItem value="is_jp_yupacket_post_mini_official_ship">ゆうパケットポストmini</SelectItem>
+                                    <SelectItem value="is_jp_yupacket_official_ship">ゆうパケット</SelectItem>
+                                    <SelectItem value="is_jp_yupacket_plus_official_ship">ゆうパケットプラス</SelectItem>
+                                    <SelectItem value="is_jp_yupack_official_ship">ゆうパック</SelectItem>
+                                    <SelectItem value="is_yahuneko_taqbin_compact_ship">宅急便コンパクト（EAZY）</SelectItem>
+                                    <SelectItem value="is_yahuneko_taqbin_ship">宅急便（EAZY）60〜160</SelectItem>
+                                    <SelectItem value="is_yahuneko_taqbin_big_ship">宅急便（EAZY）180〜200</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>

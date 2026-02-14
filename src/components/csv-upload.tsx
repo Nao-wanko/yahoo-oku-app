@@ -8,7 +8,7 @@ import { createProductFromCsvRow } from "@/lib/products-store";
 import type { Product } from "@/types/product";
 
 type CsvUploadProps = {
-  onParsed: (products: Product[]) => void;
+  onParsed: (products: Product[]) => void | Promise<void>;
 };
 
 export function CsvUpload({ onParsed }: CsvUploadProps) {
@@ -32,13 +32,35 @@ export function CsvUpload({ onParsed }: CsvUploadProps) {
             return;
           }
           try {
-            const rows = results.data as unknown as Record<string, string>[];
-            const products: Product[] = rows.map((row) => createProductFromCsvRow(row));
-            onParsed(products);
-          } catch (err) {
-            setError(
-              err instanceof Error ? err.message : "CSVの取り込みに失敗しました。"
+            const rows = (results.data ?? []) as unknown as Record<string, string>[];
+            if (!Array.isArray(rows) || rows.length === 0) {
+              setError("CSVにデータ行が含まれていません。");
+              return;
+            }
+            // BOM付きUTF-8のとき最初のキーが "商品名" でなく "\ufeff商品名" になるのを正規化
+            const normalizeRow = (row: Record<string, string>): Record<string, string> => {
+              const out: Record<string, string> = {};
+              for (const k of Object.keys(row)) {
+                const key = k.replace(/^\uFEFF/, "").trim();
+                out[key] = String(row[k] ?? "").trim();
+              }
+              return out;
+            };
+            const products: Product[] = rows.map((row) =>
+              createProductFromCsvRow(normalizeRow(row))
             );
+            const result = onParsed(products);
+            if (result instanceof Promise) {
+              result.catch((err) => {
+                const msg =
+                  err instanceof Error ? err.message : String(err);
+                setError(msg || "CSVの取り込みに失敗しました。");
+              });
+            }
+          } catch (err) {
+            const msg =
+              err instanceof Error ? err.message : String(err);
+            setError(msg || "CSVの取り込みに失敗しました。");
           }
         },
       });

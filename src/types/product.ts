@@ -42,6 +42,8 @@ export interface Product {
   shipschedule?: Shipschedule;
   /** 発送元の地域（都道府県コード 1-47, 48=海外） */
   locCd?: string;
+  /** 配送方法（data-delivertype: is_jp_yupacket_official_ship=ゆうパケット等） */
+  shipMethod?: string;
 }
 
 /** ヤフオク商品の状態（istatus）の選択肢 */
@@ -78,6 +80,8 @@ export const CSV_FIELD_MAP: Record<string, keyof Omit<Product, "id" | "images" |
   shipschedule: "shipschedule",
   "発送元": "locCd",
   locCd: "locCd",
+  "配送方法": "shipMethod",
+  shipMethod: "shipMethod",
 };
 
 export function createEmptyProduct(overrides?: Partial<Product>): Product {

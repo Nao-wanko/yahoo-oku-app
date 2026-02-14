@@ -29,6 +29,7 @@ interface ProductRow {
   shipping?: string | null;
   shipschedule?: string | null;
   loc_cd?: string | null;
+  ship_method?: string | null;
 }
 
 function rowToProduct(row: ProductRow): Product {
@@ -47,6 +48,7 @@ function rowToProduct(row: ProductRow): Product {
     shipping: (row.shipping as "seller" | "buyer") ?? undefined,
     shipschedule: (row.shipschedule as "1" | "7" | "2") ?? undefined,
     locCd: row.loc_cd ?? undefined,
+    shipMethod: row.ship_method ?? undefined,
   };
 }
 
@@ -65,6 +67,7 @@ function productToRow(p: Partial<Product>): Partial<ProductRow> {
   if (p.shipping !== undefined) row.shipping = p.shipping;
   if (p.shipschedule !== undefined) row.shipschedule = p.shipschedule;
   if (p.locCd !== undefined) row.loc_cd = p.locCd;
+  if (p.shipMethod !== undefined) row.ship_method = p.shipMethod;
   return row;
 }
 

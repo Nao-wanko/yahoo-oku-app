@@ -84,10 +84,14 @@ export function useProducts(): UseProductsReturn {
         } else {
           setProducts(newProducts);
         }
-      } catch (e) {
+      } catch (e: unknown) {
         const message =
-          e instanceof Error ? e.message : "CSVの取り込みに失敗しました。";
-        setError(message);
+          e instanceof Error
+            ? e.message
+            : e && typeof e === "object" && "message" in e
+              ? String((e as { message: unknown }).message)
+              : String(e);
+        setError(message || "CSVの取り込みに失敗しました。");
       }
     },
     [load]
@@ -158,5 +162,6 @@ export function createProductFromCsvRow(row: Record<string, string>): Product {
     shipping,
     shipschedule: shipschedule as "1" | "7" | "2",
     locCd: get(["発送元", "locCd", "LocCd"]) || undefined,
+    shipMethod: get(["配送方法", "shipMethod", "ShipMethod"]) || undefined,
   });
 }
