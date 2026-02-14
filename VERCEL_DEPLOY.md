@@ -1,5 +1,8 @@
 # Vercel で /api/products が 404 になる場合の確認手順
 
+**※ 現在の API は Pages Router（`src/pages/api/`）で実装しています。**  
+App Router（`src/app/api/`）では Vercel で 404 になる事象があったため、Pages Router に統一しています。
+
 ## 1. ヘルスチェックで API が有効か確認
 
 デプロイ後、ブラウザで次の **2つ** を開いてください。
@@ -16,8 +19,8 @@
 
 Vercel がデプロイしている **ブランチ** のリポジトリに、次のファイルがあるか確認してください。
 
-- `src/app/api/health/route.ts`
-- `src/app/api/products/route.ts`
+- `src/pages/api/health.ts`
+- `src/pages/api/products.ts`
 
 ない場合は、ローカルの変更を push してから再デプロイしてください。
 
