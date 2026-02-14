@@ -60,6 +60,7 @@ export default async function handler(
     price: Number(row.price) ?? 0,
     condition: row.condition ?? "",
     description: row.description ?? "",
+    salesmode: (row.salesmode as "auction" | "buynow") ?? "buynow",
     status: row.status ?? "not_listed",
     images: Array.isArray(row.images) ? row.images : [],
     updatedAt: row.updated_at ?? new Date().toISOString(),

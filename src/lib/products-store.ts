@@ -121,6 +121,15 @@ export function createProductFromCsvRow(row: Record<string, string>): Product {
   const statusRaw = get(["ステータス", "status", "Status"]).toLowerCase();
   const status =
     statusRaw === "listed" || statusRaw === "出品済み" ? "listed" : "not_listed";
+  const salesmodeRaw = get(["販売形式", "salesmode", "SalesMode"]).toLowerCase();
+  const salesmode =
+    salesmodeRaw === "auction" || salesmodeRaw === "オークション" ? "auction" : "buynow";
+  const shippingRaw = get(["送料負担", "shipping", "Shipping"]).toLowerCase();
+  const shipping =
+    shippingRaw === "buyer" || shippingRaw === "落札者" ? "buyer" : "seller";
+  const scheduleRaw = get(["発送までの日数", "shipschedule", "Shipschedule"]);
+  const shipschedule =
+    scheduleRaw === "7" || scheduleRaw === "2〜3日" ? "7" : scheduleRaw === "2" || scheduleRaw === "3〜7日" ? "2" : "1";
   const priceStr = get(["価格", "price", "Price"]);
   const price = parseInt(priceStr, 10) || 0;
 
@@ -129,6 +138,15 @@ export function createProductFromCsvRow(row: Record<string, string>): Product {
     price,
     condition: get(["商品の状態", "condition", "Condition"]),
     description: get(["説明", "description", "Description"]),
+    salesmode,
     status,
+    closingYMD: get(["終了日", "closingYMD", "ClosingYMD"]) || undefined,
+    closingTime: (() => {
+      const t = parseInt(get(["終了時刻", "closingTime", "ClosingTime"]), 10);
+      return Number.isFinite(t) && t >= 0 && t <= 23 ? t : undefined;
+    })(),
+    shipping,
+    shipschedule: shipschedule as "1" | "7" | "2",
+    locCd: get(["発送元", "locCd", "LocCd"]) || undefined,
   });
 }

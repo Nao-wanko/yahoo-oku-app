@@ -109,6 +109,19 @@ function setDescription(value) {
 }
 
 /**
+ * ラジオボタンをクリックして選択
+ */
+function clickRadio(name, value) {
+  const radio = document.querySelector(`input[type="radio"][name="${name}"][value="${value}"]`);
+  if (radio && !radio.checked) {
+    radio.click();
+    radio.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  }
+  return !!radio;
+}
+
+/**
  * フォーム全項目を入力
  */
 function fillForm(product) {
@@ -122,14 +135,22 @@ function fillForm(product) {
     report.failed.push("商品名");
   }
 
-  // 2. 価格: フリマ（定額）時は #auc_BidOrBuyPrice_buynow、オークション時は #auc_BidOrBuyPrice または #auc_StartPrice
-  const priceSelectors = [
-    "#auc_BidOrBuyPrice_buynow",
-    "input[name='BidOrBuyPrice']",
-    "#auc_BidOrBuyPrice",
-    "#auc_StartPrice",
-    "input[name='StartPrice']",
-  ];
+  // 2. 製品検索: input[name="productSearchTitle"]（商品名を入れて検索しやすくする）
+  const productSearchEl = document.querySelector("input[name='productSearchTitle']");
+  if (productSearchEl && product.name && setInputValue(productSearchEl, product.name)) {
+    report.filled.push("製品検索");
+  }
+
+  // 3. 販売形式: オークションのみ（価格フィールドが切り替わるため先に選択）
+  const mode = product.salesmode === "buynow" ? "buynow" : "auction";
+  if (clickRadio("salesmode", mode)) {
+    report.filled.push("販売形式");
+  }
+
+  // 4. 価格: 販売形式に応じたフィールド（フリマ=auc_BidOrBuyPrice_buynow、オークション=auc_StartPrice）
+  const priceSelectors = mode === "buynow"
+    ? ["#auc_BidOrBuyPrice_buynow", "input[name='BidOrBuyPrice']"]
+    : ["#auc_StartPrice", "input[name='StartPrice']", "#auc_BidOrBuyPrice"];
   let priceFilled = false;
   for (const sel of priceSelectors) {
     const el = document.querySelector(sel);
@@ -144,20 +165,55 @@ function fillForm(product) {
   }
   if (!priceFilled) report.failed.push("価格");
 
-  // 3. 商品説明: textarea または RTE iframe
+  // 5. 商品説明: textarea または RTE iframe
   if (setDescription(product.description)) {
     report.filled.push("商品説明");
   } else {
     report.failed.push("商品説明");
   }
 
-  // 4. 商品の状態: select[name="istatus"]
+  // 6. 商品の状態: select[name="istatus"]
   const istatusValue = mapConditionToIstatus(product.condition);
   const condSelect = document.querySelector("select[name='istatus']");
   if (condSelect && setSelectValue(condSelect, istatusValue)) {
     report.filled.push("商品の状態");
   } else {
     report.failed.push("商品の状態");
+  }
+
+  // 7. 終了する日時（オークション用）: select[name="ClosingYMD"], select[name="ClosingTime"]
+  if (product.closingYMD) {
+    const closingYMDSelect = document.querySelector("select[name='ClosingYMD'], #ClosingYMD");
+    if (closingYMDSelect && setSelectValue(closingYMDSelect, product.closingYMD)) {
+      report.filled.push("終了日");
+    }
+  }
+  if (product.closingTime != null && product.closingTime >= 0 && product.closingTime <= 23) {
+    const closingTimeSelect = document.querySelector("select#ClosingTime");
+    if (closingTimeSelect && setSelectValue(closingTimeSelect, String(product.closingTime))) {
+      report.filled.push("終了時刻");
+    }
+  }
+
+  // 8. 送料負担: input[name="shipping_dummy"] (seller / buyer)
+  const shippingVal = product.shipping === "buyer" ? "buyer" : "seller";
+  if (clickRadio("shipping_dummy", shippingVal)) {
+    report.filled.push("送料負担");
+  }
+
+  // 9. 支払いから発送までの日数: select[name="shipschedule"]
+  const scheduleVal = product.shipschedule || "1";
+  const shipscheduleSelect = document.querySelector("select[name='shipschedule']");
+  if (shipscheduleSelect && setSelectValue(shipscheduleSelect, scheduleVal)) {
+    report.filled.push("発送までの日数");
+  }
+
+  // 10. 発送元の地域: select[name="loc_cd"]
+  if (product.locCd) {
+    const locSelect = document.querySelector("select[name='loc_cd']");
+    if (locSelect && setSelectValue(locSelect, product.locCd)) {
+      report.filled.push("発送元の地域");
+    }
   }
 
   return report;

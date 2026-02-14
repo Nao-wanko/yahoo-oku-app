@@ -20,9 +20,15 @@ interface ProductRow {
   price: number;
   condition: string;
   description: string;
+  salesmode?: string;
   status: string;
   images: string[];
   updated_at: string;
+  closing_ymd?: string | null;
+  closing_time?: number | null;
+  shipping?: string | null;
+  shipschedule?: string | null;
+  loc_cd?: string | null;
 }
 
 function rowToProduct(row: ProductRow): Product {
@@ -32,9 +38,15 @@ function rowToProduct(row: ProductRow): Product {
     price: Number(row.price) ?? 0,
     condition: row.condition ?? "",
     description: row.description ?? "",
+    salesmode: (row.salesmode as "auction" | "buynow") ?? "auction",
     status: (row.status as ListingStatus) ?? "not_listed",
     images: Array.isArray(row.images) ? row.images : [],
     updatedAt: row.updated_at ?? new Date().toISOString(),
+    closingYMD: row.closing_ymd ?? undefined,
+    closingTime: row.closing_time ?? undefined,
+    shipping: (row.shipping as "seller" | "buyer") ?? undefined,
+    shipschedule: (row.shipschedule as "1" | "7" | "2") ?? undefined,
+    locCd: row.loc_cd ?? undefined,
   };
 }
 
@@ -44,9 +56,15 @@ function productToRow(p: Partial<Product>): Partial<ProductRow> {
   if (p.price !== undefined) row.price = p.price;
   if (p.condition !== undefined) row.condition = p.condition;
   if (p.description !== undefined) row.description = p.description;
+  if (p.salesmode !== undefined) row.salesmode = p.salesmode;
   if (p.status !== undefined) row.status = p.status;
   if (p.images !== undefined) row.images = p.images;
   if (p.updatedAt !== undefined) row.updated_at = p.updatedAt;
+  if (p.closingYMD !== undefined) row.closing_ymd = p.closingYMD;
+  if (p.closingTime !== undefined) row.closing_time = p.closingTime;
+  if (p.shipping !== undefined) row.shipping = p.shipping;
+  if (p.shipschedule !== undefined) row.shipschedule = p.shipschedule;
+  if (p.locCd !== undefined) row.loc_cd = p.locCd;
   return row;
 }
 
@@ -97,9 +115,15 @@ export async function addProduct(product: Product): Promise<void> {
     price: product.price,
     condition: product.condition,
     description: product.description,
+    salesmode: product.salesmode ?? "auction",
     status: product.status,
     images: product.images ?? [],
     updated_at: product.updatedAt ?? new Date().toISOString(),
+    closing_ymd: product.closingYMD ?? null,
+    closing_time: product.closingTime ?? null,
+    shipping: product.shipping ?? null,
+    shipschedule: product.shipschedule ?? null,
+    loc_cd: product.locCd ?? null,
   };
   const { error } = await supabase.from(PRODUCTS_TABLE).insert(row);
   if (error) {
@@ -119,9 +143,15 @@ export async function addProducts(products: Product[]): Promise<void> {
     price: p.price,
     condition: p.condition,
     description: p.description,
+    salesmode: p.salesmode ?? "auction",
     status: p.status,
     images: p.images ?? [],
     updated_at: p.updatedAt ?? new Date().toISOString(),
+    closing_ymd: p.closingYMD ?? null,
+    closing_time: p.closingTime ?? null,
+    shipping: p.shipping ?? null,
+    shipschedule: p.shipschedule ?? null,
+    loc_cd: p.locCd ?? null,
   }));
   const { error } = await supabase.from(PRODUCTS_TABLE).insert(rows);
   if (error) {

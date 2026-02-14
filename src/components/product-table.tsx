@@ -139,6 +139,7 @@ export function ProductTable({
                 </Button>
               </TableHead>
               <TableHead>商品の状態</TableHead>
+              <TableHead>販売形式</TableHead>
               <TableHead className="min-w-[200px]">説明文</TableHead>
               <TableHead>
                 <Button
@@ -166,7 +167,7 @@ export function ProductTable({
           <TableBody>
             {sorted.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                   ＣＳＶをアップロードするか、データがありません。
                 </TableCell>
               </TableRow>
@@ -277,6 +278,26 @@ export function ProductTable({
                         </SelectContent>
                       </Select>
                     </TableCell>
+                    <TableCell>
+                      <Select
+                        value={product.salesmode ?? "auction"}
+                        onValueChange={(v) =>
+                          handleFieldChange(
+                            product.id,
+                            "salesmode",
+                            v as "auction" | "buynow"
+                          )
+                        }
+                      >
+                        <SelectTrigger className="h-8 w-[120px] border-0 bg-transparent shadow-none focus:ring-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="buynow">フリマ（定額）</SelectItem>
+                          <SelectItem value="auction">オークション</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="min-w-[200px]">
                       <Textarea
                         value={product.description}
@@ -327,11 +348,109 @@ export function ProductTable({
                   </TableRow>
                   {expandedId === product.id && (
                     <TableRow key={`${product.id}-images`} className="bg-muted/30">
-                      <TableCell colSpan={8} className="py-4">
-                        <div className="rounded-lg border bg-background p-4">
-                          <p className="mb-3 text-sm font-medium text-muted-foreground">
-                            画像管理（最大10枚）
-                          </p>
+                      <TableCell colSpan={9} className="py-4">
+                        <div className="space-y-4">
+                          <div className="rounded-lg border bg-background p-4">
+                            <p className="mb-3 text-sm font-medium text-muted-foreground">
+                              出品詳細（オークション用）
+                            </p>
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+                              <div>
+                                <label className="mb-1 block text-xs text-muted-foreground">終了日 (YYYY-MM-DD)</label>
+                                <Input
+                                  value={product.closingYMD ?? ""}
+                                  onChange={(e) =>
+                                    handleFieldChange(product.id, "closingYMD", e.target.value || undefined)
+                                  }
+                                  placeholder="2026-02-15"
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-xs text-muted-foreground">終了時刻</label>
+                                <Select
+                                  value={product.closingTime != null ? String(product.closingTime) : ""}
+                                  onValueChange={(v) =>
+                                    handleFieldChange(product.id, "closingTime", v === "" ? undefined : parseInt(v, 10))
+                                  }
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue placeholder="選択" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Array.from({ length: 24 }, (_, i) => (
+                                      <SelectItem key={i} value={String(i)}>
+                                        {i}時
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-xs text-muted-foreground">送料負担</label>
+                                <Select
+                                  value={product.shipping ?? "seller"}
+                                  onValueChange={(v) =>
+                                    handleFieldChange(product.id, "shipping", v as "seller" | "buyer")
+                                  }
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="seller">出品者</SelectItem>
+                                    <SelectItem value="buyer">落札者</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-xs text-muted-foreground">発送までの日数</label>
+                                <Select
+                                  value={product.shipschedule ?? "1"}
+                                  onValueChange={(v) =>
+                                    handleFieldChange(product.id, "shipschedule", v as "1" | "7" | "2")
+                                  }
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="1">1〜2日</SelectItem>
+                                    <SelectItem value="7">2〜3日</SelectItem>
+                                    <SelectItem value="2">3〜7日</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-xs text-muted-foreground">発送元の地域</label>
+                                <Select
+                                  value={product.locCd ?? ""}
+                                  onValueChange={(v) =>
+                                    handleFieldChange(product.id, "locCd", v || undefined)
+                                  }
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue placeholder="選択" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="">選択しない</SelectItem>
+                                    <SelectItem value="1">北海道</SelectItem>
+                                    <SelectItem value="13">東京都</SelectItem>
+                                    <SelectItem value="27">大阪府</SelectItem>
+                                    <SelectItem value="14">神奈川県</SelectItem>
+                                    <SelectItem value="23">愛知県</SelectItem>
+                                    <SelectItem value="28">兵庫県</SelectItem>
+                                    <SelectItem value="47">沖縄県</SelectItem>
+                                    <SelectItem value="48">海外</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="rounded-lg border bg-background p-4">
+                            <p className="mb-3 text-sm font-medium text-muted-foreground">
+                              画像管理（最大10枚）
+                            </p>
                           <ProductImageManager
                             productId={product.id}
                             images={product.images}
@@ -348,6 +467,7 @@ export function ProductTable({
                             }
                             onRemoveImage={onRemoveImage}
                           />
+                        </div>
                         </div>
                       </TableCell>
                     </TableRow>
