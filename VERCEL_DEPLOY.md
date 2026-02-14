@@ -1,7 +1,7 @@
 # Vercel で /api/products が 404 になる場合の確認手順
 
-**※ 現在の API は `src/pages/api/` で実装しています。**  
-Next.js 16 では `pages` と `app` を同じフォルダ（`src`）配下に置く必要があります。
+**※ 現在は `app/` と `pages/` をプロジェクトルート直下に配置しています。**  
+Next.js 16 では「同じフォルダ配下」が必要なため、どちらもルートに置き、Vercel が API を認識しやすいようにしています。
 
 ## 1. ヘルスチェックで API が有効か確認
 
@@ -17,10 +17,10 @@ Next.js 16 では `pages` と `app` を同じフォルダ（`src`）配下に置
 
 ## 2. GitHub に API が含まれているか
 
-Vercel がデプロイしている **ブランチ** のリポジトリに、次のファイルがあるか確認してください（**src 配下**の `pages` フォルダ）。
+Vercel がデプロイしている **ブランチ** のリポジトリに、次のファイルがあるか確認してください（**ルート直下**の `pages` フォルダ）。
 
-- `src/pages/api/health.ts`
-- `src/pages/api/products.ts`
+- `pages/api/health.ts`
+- `pages/api/products.ts`
 
 ない場合は、ローカルの変更を push してから再デプロイしてください。
 
