@@ -2,6 +2,7 @@
 
 import { useProducts } from "@/lib/products-store";
 import { CsvUpload } from "@/components/csv-upload";
+import { BulkImageUpload } from "@/components/bulk-image-upload";
 import { ProductTable } from "@/components/product-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -36,6 +37,17 @@ export default function DashboardPage() {
             CSVアップロード
           </h2>
           <CsvUpload onParsed={addProductsFromCsv} />
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+            画像一括登録
+          </h2>
+          <BulkImageUpload
+            products={products}
+            onUploadImage={uploadProductImage}
+            onUpdateProduct={updateProduct}
+          />
         </section>
 
         <section>

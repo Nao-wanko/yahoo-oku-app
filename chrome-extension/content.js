@@ -182,17 +182,47 @@ function fillForm(product) {
   }
 
   // 7. 終了する日時（オークション用）: select[name="ClosingYMD"], select[name="ClosingTime"]
-  if (product.closingYMD) {
-    const closingYMDSelect = document.querySelector("select[name='ClosingYMD'], #ClosingYMD");
-    if (closingYMDSelect && setSelectValue(closingYMDSelect, product.closingYMD)) {
+  // 指定がなければ入力作業時点から48時間後をデフォルトにする
+  const pad = (n) => String(n).padStart(2, "0");
+  const defaultClosing = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  const defaultYMD =
+    defaultClosing.getFullYear() +
+    "-" +
+    pad(defaultClosing.getMonth() + 1) +
+    "-" +
+    pad(defaultClosing.getDate());
+  const defaultTime =
+    product.closingTime != null && product.closingTime >= 0 && product.closingTime <= 23
+      ? product.closingTime
+      : defaultClosing.getHours();
+  const closingYMDVal = product.closingYMD || defaultYMD;
+
+  const closingYMDSelect = document.querySelector("select[name='ClosingYMD'], #ClosingYMD");
+  if (closingYMDSelect) {
+    if (setSelectValue(closingYMDSelect, closingYMDVal)) {
       report.filled.push("終了日");
+    } else {
+      // 候補にない日付の場合、それ以降で最も近い候補を選ぶ
+      const options = closingYMDSelect.querySelectorAll("option");
+      let nearest = null;
+      for (const opt of options) {
+        const optVal = (opt.value || "").trim();
+        if (optVal && optVal >= closingYMDVal) {
+          nearest = optVal;
+          break;
+        }
+      }
+      if (!nearest && options.length > 0) {
+        nearest = (options[options.length - 1].value || "").trim();
+      }
+      if (nearest && setSelectValue(closingYMDSelect, nearest)) {
+        report.filled.push("終了日");
+      }
     }
   }
-  if (product.closingTime != null && product.closingTime >= 0 && product.closingTime <= 23) {
-    const closingTimeSelect = document.querySelector("select#ClosingTime");
-    if (closingTimeSelect && setSelectValue(closingTimeSelect, String(product.closingTime))) {
-      report.filled.push("終了時刻");
-    }
+  const closingTimeSelect = document.querySelector("select#ClosingTime");
+  if (closingTimeSelect && setSelectValue(closingTimeSelect, String(defaultTime))) {
+    report.filled.push("終了時刻");
   }
 
   // 8. 送料負担: input[name="shipping_dummy"] (seller / buyer)
@@ -235,7 +265,55 @@ function fillForm(product) {
     }
   }
 
+  // 12. 画像は uploadImagesToYahoo で非同期処理するためここではスキップ
   return report;
+}
+
+/**
+ * 商品の画像URLをfetch→Fileに変換し、.js-dragdrop-area にドロップイベントを発火
+ */
+async function uploadImagesToYahoo(product) {
+  const urls = (product.images || []).filter(
+    (u) => typeof u === "string" && (u.startsWith("http://") || u.startsWith("https://"))
+  ).slice(0, 10);
+  if (urls.length === 0) return { success: false };
+
+  const dropArea = document.querySelector(".js-dragdrop-area, .ImageUpload__label");
+  if (!dropArea) return { success: false };
+
+  const files = [];
+  for (let i = 0; i < urls.length; i++) {
+    try {
+      const res = await fetch(urls[i], { mode: "cors", credentials: "omit" });
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const ext = (urls[i].match(/\.(jpg|jpeg|png|gif|webp)/i) || ["", "jpg"])[1].toLowerCase();
+      const name = `image_${i + 1}.${ext || "jpg"}`;
+      const file = new File([blob], name, { type: blob.type || "image/jpeg" });
+      files.push(file);
+    } catch (_) {
+      /* スキップ */
+    }
+  }
+  if (files.length === 0) return { success: false };
+
+  const dt = new DataTransfer();
+  files.forEach((f) => dt.items.add(f));
+
+  dropArea.scrollIntoView({ behavior: "smooth", block: "center" });
+  await new Promise((r) => setTimeout(r, 300));
+
+  ["dragenter", "dragover", "drop"].forEach((type) => {
+    const ev = new DragEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      dataTransfer: dt,
+    });
+    if (type === "dragover") ev.preventDefault();
+    dropArea.dispatchEvent(ev);
+  });
+
+  return { success: true };
 }
 
 /**
@@ -272,12 +350,17 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     sendResponse({ ok: false, error: "invalid message" });
     return true;
   }
-  try {
-    const report = fillForm(msg.product);
-    sendResponse({ ok: true, report });
-  } catch (err) {
-    console.error("ヤフオク出品アシスト fillForm error:", err);
-    sendResponse({ ok: false, error: String(err.message) });
-  }
+  (async () => {
+    try {
+      const report = fillForm(msg.product);
+      const imgResult = await uploadImagesToYahoo(msg.product);
+      if (imgResult.success) report.filled.push("画像");
+      else if ((msg.product.images || []).length > 0) report.failed.push("画像");
+      sendResponse({ ok: true, report });
+    } catch (err) {
+      console.error("ヤフオク出品アシスト fillForm error:", err);
+      sendResponse({ ok: false, error: String(err.message) });
+    }
+  })();
   return true;
 });

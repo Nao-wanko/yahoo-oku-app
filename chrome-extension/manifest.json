@@ -10,7 +10,7 @@
   "host_permissions": [
     "https://auctions.yahoo.co.jp/*",
     "http://localhost:3000/*",
-    "https://*.vercel.app/*"
+    "https://*.vercel.app/*","https://*.supabase.co/*","<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",

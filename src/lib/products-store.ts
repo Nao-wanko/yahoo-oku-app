@@ -124,6 +124,14 @@ export function useProducts(): UseProductsReturn {
 /** 初期値（Supabase 未使用時のフォールバック用） */
 export const initialProducts: Product[] = [];
 
+/** CSV の画像列キー: 画像1, 画像2, ... 画像10 / image1, image2, ... */
+const CSV_IMAGE_KEYS = [
+  "画像1", "画像2", "画像3", "画像4", "画像5",
+  "画像6", "画像7", "画像8", "画像9", "画像10",
+  "image1", "image2", "image3", "image4", "image5",
+  "image6", "image7", "image8", "image9", "image10",
+];
+
 export function createProductFromCsvRow(row: Record<string, string>): Product {
   const get = (keys: string[]): string => {
     for (const k of keys) {
@@ -147,6 +155,19 @@ export function createProductFromCsvRow(row: Record<string, string>): Product {
   const priceStr = get(["価格", "price", "Price"]);
   const price = parseInt(priceStr, 10) || 0;
 
+  const images: string[] = [];
+  const seen = new Set<string>();
+  for (const key of CSV_IMAGE_KEYS) {
+    const v = row[key];
+    if (v != null) {
+      const url = String(v).trim();
+      if (url && (url.startsWith("http://") || url.startsWith("https://")) && !seen.has(url)) {
+        images.push(url);
+        seen.add(url);
+      }
+    }
+  }
+
   return createEmptyProduct({
     name: get(["商品名", "name", "Name"]),
     price,
@@ -163,5 +184,6 @@ export function createProductFromCsvRow(row: Record<string, string>): Product {
     shipschedule: shipschedule as "1" | "7" | "2",
     locCd: get(["発送元", "locCd", "LocCd"]) || undefined,
     shipMethod: get(["配送方法", "shipMethod", "ShipMethod"]) || undefined,
+    images,
   });
 }
