@@ -1,7 +1,7 @@
 # Vercel で /api/products が 404 になる場合の確認手順
 
-**※ 現在の API は Pages Router（`src/pages/api/`）で実装しています。**  
-App Router（`src/app/api/`）では Vercel で 404 になる事象があったため、Pages Router に統一しています。
+**※ 現在の API はプロジェクトルート直下の `pages/api/` で実装しています。**  
+Vercel が確実に認識するよう、`src` の外に置いています。
 
 ## 1. ヘルスチェックで API が有効か確認
 
@@ -17,12 +17,20 @@ App Router（`src/app/api/`）では Vercel で 404 になる事象があった�
 
 ## 2. GitHub に API が含まれているか
 
-Vercel がデプロイしている **ブランチ** のリポジトリに、次のファイルがあるか確認してください。
+Vercel がデプロイしている **ブランチ** のリポジトリに、次のファイルがあるか確認してください（**プロジェクトルート直下**の `pages` フォルダ）。
 
-- `src/pages/api/health.ts`
-- `src/pages/api/products.ts`
+- `pages/api/health.ts`
+- `pages/api/products.ts`
 
 ない場合は、ローカルの変更を push してから再デプロイしてください。
+
+## 2.5 キャッシュをクリアして再デプロイ
+
+まだ 404 の場合、Vercel の **キャッシュ** が原因のことがあります。
+
+1. Vercel ダッシュボード → 対象プロジェクト → **Deployments**
+2. 直近のデプロイの **⋯** メニュー → **Redeploy**
+3. **「Redeploy with cleared cache」**（キャッシュをクリアして再デプロイ）にチェックを入れて実行
 
 ## 3. Vercel の Root Directory
 
