@@ -179,10 +179,12 @@ export async function uploadProductImage(
     throw new Error("Supabase が未設定です");
   }
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const path = `${productId}/${crypto.randomUUID()}.${ext}`;
+  const safeExt = /^(jpg|jpeg|gif)$/.test(ext) ? ext : "jpg";
+  const path = `${productId}/${crypto.randomUUID()}.${safeExt}`;
+  const contentType = file.type || (safeExt === "gif" ? "image/gif" : "image/jpeg");
   const { error } = await supabase.storage
     .from(STORAGE_BUCKET)
-    .upload(path, file, { contentType: file.type, upsert: false });
+    .upload(path, file, { contentType, upsert: false });
   if (error) {
     console.error("uploadProductImage error:", error);
     throw error;

@@ -4,7 +4,12 @@ import { useCallback, useRef, useState } from "react";
 import { Plus, X, Loader2, Camera, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** ヤフオク対応: JPG/GIF のみ、最大10枚 */
 const MAX_IMAGES = 10;
+const ACCEPT_IMAGES = "image/jpeg,image/jpg,image/gif,.jpg,.jpeg,.gif";
+const isYahooImage = (f: File) =>
+  (/\.(jpg|jpeg|gif)$/i.test(f.name)) ||
+  (f.type && ["image/jpeg", "image/jpg", "image/gif"].includes(f.type));
 
 type ProductImageManagerProps = {
   images: string[];
@@ -14,6 +19,8 @@ type ProductImageManagerProps = {
   onUploadImage?: (file: File) => Promise<string>;
   /** 画像削除時に Storage からも削除する場合に指定（Supabase の URL のとき） */
   onRemoveImage?: (url: string) => Promise<void>;
+  /** アップロードエラー時に呼ばれる。null でクリア */
+  onUploadError?: (message: string | null) => void;
   className?: string;
 };
 
@@ -23,6 +30,7 @@ export function ProductImageManager({
   productId,
   onUploadImage,
   onRemoveImage,
+  onUploadError,
   className,
 }: ProductImageManagerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,23 +42,31 @@ export function ProductImageManager({
     async (e: React.ChangeEvent<HTMLInputElement>, insertAt?: number) => {
       const files = e.target.files;
       if (!files?.length) return;
+      onUploadError?.(null);
       const replaceIndex = insertAt ?? replaceAtRef.current;
       replaceAtRef.current = null;
 
       const next: string[] = [...images];
       const insertIndex = replaceIndex != null && replaceIndex >= 0 ? replaceIndex : undefined;
+
       if (onUploadImage) {
         setUploading(true);
         try {
           for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            if (!file.type.startsWith("image/")) continue;
-            const url = await onUploadImage(file);
-            if (insertIndex !== undefined) {
-              next.splice(insertIndex, 0, url);
-              break; // 撮り直しは1枚のみ
-            } else if (next.length < MAX_IMAGES) {
-              next.push(url);
+            if (!isYahooImage(file)) continue;
+            try {
+              const url = await onUploadImage(file);
+              if (insertIndex !== undefined) {
+                next.splice(insertIndex, 0, url);
+                break; // 撮り直しは1枚のみ
+              } else if (next.length < MAX_IMAGES) {
+                next.push(url);
+              }
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : "画像のアップロードに失敗しました";
+              onUploadError?.(msg);
+              console.error("uploadProductImage error:", err);
             }
           }
           onChange(next.slice(0, MAX_IMAGES));
@@ -60,7 +76,7 @@ export function ProductImageManager({
       } else {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          if (!file.type.startsWith("image/")) continue;
+          if (!isYahooImage(file)) continue;
           const url = URL.createObjectURL(file);
           if (insertIndex !== undefined) {
             next.splice(insertIndex, 0, url);
@@ -73,7 +89,7 @@ export function ProductImageManager({
       }
       e.target.value = "";
     },
-    [images, onChange, onUploadImage]
+    [images, onChange, onUploadImage, onUploadError]
   );
 
   const handleAddImages = useCallback(
@@ -145,7 +161,7 @@ export function ProductImageManager({
             <input
               ref={inputRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPT_IMAGES}
               multiple
               onChange={handleAddImages}
               className="sr-only"
@@ -155,7 +171,7 @@ export function ProductImageManager({
             <input
               ref={cameraRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPT_IMAGES}
               capture="environment"
               onChange={(e) => addImages(e)}
               className="sr-only"
@@ -206,7 +222,7 @@ export function ProductImageManager({
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        {images.length} / {MAX_IMAGES} 枚（スマホで開くと「撮影」でカメラ起動。各画像にホバーで撮り直し）
+        {images.length} / {MAX_IMAGES} 枚（JPG・GIFのみ／ヤフオク仕様）
       </p>
     </div>
   );

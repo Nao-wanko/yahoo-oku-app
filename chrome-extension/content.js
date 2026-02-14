@@ -287,9 +287,11 @@ async function uploadImagesToYahoo(product) {
       const res = await fetch(urls[i], { mode: "cors", credentials: "omit" });
       if (!res.ok) continue;
       const blob = await res.blob();
-      const ext = (urls[i].match(/\.(jpg|jpeg|png|gif|webp)/i) || ["", "jpg"])[1].toLowerCase();
-      const name = `image_${i + 1}.${ext || "jpg"}`;
-      const file = new File([blob], name, { type: blob.type || "image/jpeg" });
+      const extMatch = urls[i].match(/\.(jpg|jpeg|gif)/i);
+      const ext = extMatch ? (extMatch[1].toLowerCase() === "jpeg" ? "jpg" : extMatch[1].toLowerCase()) : "jpg";
+      const name = `image_${i + 1}.${ext}`;
+      const mime = ext === "gif" ? "image/gif" : "image/jpeg";
+      const file = new File([blob], name, { type: blob.type === "image/gif" ? "image/gif" : mime });
       files.push(file);
     } catch (_) {
       /* スキップ */

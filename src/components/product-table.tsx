@@ -40,6 +40,7 @@ type ProductTableProps = {
   onUpdate: (id: string, updates: Partial<Product>) => void | Promise<void>;
   onUploadImage?: (productId: string, file: File) => Promise<string>;
   onRemoveImage?: (imageUrl: string) => Promise<void>;
+  onUploadError?: (message: string | null) => void;
 };
 
 const STATUS_LABEL: Record<ListingStatus, string> = {
@@ -52,6 +53,7 @@ export function ProductTable({
   onUpdate,
   onUploadImage,
   onRemoveImage,
+  onUploadError,
 }: ProductTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortKey, setSortKey] = useState<SortKey>(null);
@@ -113,8 +115,9 @@ export function ProductTable({
         </span>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+        <div className="min-w-[800px] rounded-md border">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-8" />
@@ -528,6 +531,7 @@ export function ProductTable({
                                 : undefined
                             }
                             onRemoveImage={onRemoveImage}
+                            onUploadError={onUploadError}
                           />
                         </div>
                         </div>
@@ -538,7 +542,8 @@ export function ProductTable({
               ))
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
     </div>
   );

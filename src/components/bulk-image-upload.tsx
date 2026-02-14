@@ -13,7 +13,12 @@ import {
 } from "@/components/ui/select";
 import type { Product } from "@/types/product";
 
+/** ヤフオク対応: JPG/GIF のみ、最大10枚 */
 const MAX_IMAGES_PER_PRODUCT = 10;
+const ACCEPT_IMAGES = "image/jpeg,image/jpg,image/gif,.jpg,.jpeg,.gif";
+const isYahooImage = (f: File) =>
+  /\.(jpg|jpeg|gif)$/i.test(f.name) ||
+  (f.type && ["image/jpeg", "image/jpg", "image/gif"].includes(f.type));
 
 /** ファイル名から商品マッチ用のキーを抽出（先頭の _ または - の前まで） */
 function getFilenameKey(filename: string): string {
@@ -63,7 +68,7 @@ export function BulkImageUpload({
     const files: File[] = [];
     for (let i = 0; i < fileList.length; i++) {
       const f = fileList[i];
-      if (f?.type?.startsWith("image/")) files.push(f);
+      if (f && isYahooImage(f)) files.push(f);
     }
     return files;
   }, []);
@@ -75,7 +80,7 @@ export function BulkImageUpload({
         if (entry.isFile) {
           return new Promise((resolve) => {
             (entry as FileSystemFileEntry).file((f) => {
-              if (f.type.startsWith("image/")) files.push(f);
+              if (isYahooImage(f)) files.push(f);
               resolve();
             });
           });
@@ -186,7 +191,7 @@ export function BulkImageUpload({
 
       for (let i = 0; i < (e.dataTransfer.files?.length ?? 0); i++) {
         const f = e.dataTransfer.files[i];
-        if (f?.type?.startsWith("image/")) files.push(f);
+        if (f && isYahooImage(f)) files.push(f);
       }
       handleFiles(files);
     },
@@ -319,7 +324,7 @@ export function BulkImageUpload({
             <input
               ref={inputRef}
               type="file"
-              accept="image/*"
+              accept={ACCEPT_IMAGES}
               multiple
               onChange={handleInputChange}
               className="sr-only"

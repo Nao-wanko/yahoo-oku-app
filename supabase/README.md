@@ -46,3 +46,9 @@ Storage > **Policies** で `product-images` に以下を追加:
   - WITH CHECK expression: `true`
 
 本番では認証済みユーザーのみに制限することを推奨します。
+
+## トラブルシューティング: 画像が保存されない
+
+- **Storage ポリシーを確認**: 上記「ストレージポリシー」が設定されていないとアップロードが拒否されます。`product-images` バケットに **INSERT** が許可されているか確認してください。
+- **バケット名**: 必ず `product-images`（ハイフン付き）にしてください。
+- **Public bucket**: オンにしないと画像 URL が取得できません。
