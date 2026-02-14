@@ -17,7 +17,7 @@ function setCors(res: NextApiResponse) {
 
 /**
  * GET: 未出品の商品リスト（Chrome 拡張機能用）
- * ルートの pages/api で Vercel が確実に認識するように
+ * pages と app は同じフォルダ(src)配下にする必要あり
  */
 export default async function handler(
   req: NextApiRequest,

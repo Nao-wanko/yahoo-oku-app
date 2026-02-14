@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 /**
  * デプロイ確認用: GET /api/health
- * ルートの pages/api で Vercel が確実に認識するように
+ * pages と app は同じフォルダ(src)配下にする必要あり
  */
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
